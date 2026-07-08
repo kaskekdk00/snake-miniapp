@@ -66,6 +66,7 @@ body {
     transition: transform 0.1s ease;
     text-align: center;
     display: inline-block;
+    touch-action: manipulation;
 }
 
 .btn:active {
@@ -126,6 +127,7 @@ body {
     font-weight: bold;
     position: relative;
     border: 2px solid transparent;
+    touch-action: manipulation;
 }
 
 .level-card.locked {
@@ -191,11 +193,11 @@ body {
 .clickable-area {
     position: absolute;
     border-radius: 50%;
-    /* برای تست می‌توانید خط دور ایجاد کنید، اما در حالت عادی شیشه‌ای است */
     background: rgba(255, 255, 255, 0.01); 
     transform: translate(-50%, -50%);
     cursor: pointer;
     z-index: 10;
+    touch-action: manipulation;
 }
 
 .found-marker {

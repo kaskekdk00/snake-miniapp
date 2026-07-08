@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>بازی ۱۰۰ مرحله‌ای پیدا کردن اختلافات واقعی</title>
+    <title>بازی ۱۰۰ مرحله‌ای اختلافات واقعی</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --text-color: #f8fafc;
-            --btn-color: #10b981;
+            --bg-color: #0b1329;
+            --text-color: #ffffff;
+            --btn-color: #00b4d8;
             --btn-text: #ffffff;
-            --panel-bg: rgba(30, 41, 59, 0.7);
         }
 
         body {
@@ -19,314 +18,283 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 12px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
             user-select: none;
             -webkit-user-select: none;
-            overflow-x: hidden;
             box-sizing: border-box;
         }
 
-        #header-panel {
+        #header {
             width: 100%;
-            max-width: 440px;
+            max-width: 420px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             font-weight: bold;
-            font-size: 15px;
-            background: var(--panel-bg);
-            padding: 12px 16px;
-            border-radius: 14px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 12px;
             box-sizing: border-box;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
         }
 
-        .game-container {
+        .game-box {
             width: 100%;
-            max-width: 440px;
+            max-width: 420px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
-        .image-container-box {
+        .canvas-container {
             position: relative;
             width: 100%;
-            border-radius: 14px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            border: 2px solid rgba(255,255,255,0.08);
-            background-color: #1e293b;
-            touch-action: none;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.2);
+            background: #1c2541;
         }
 
-        .game-photo {
+        canvas {
             width: 100%;
             display: block;
-            pointer-events: none; /* جلوگیری از درگ شدن تداخل مانیتور */
         }
 
-        /* دایره تفاوت‌های کشف شده */
-        .found-circle {
-            position: absolute;
-            border: 3px solid #10b981;
-            border-radius: 50%;
-            background-color: rgba(16, 185, 129, 0.25);
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            animation: pulse-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        @keyframes pulse-pop {
-            0% { transform: translate(-50%, -50%) scale(0); }
-            70% { transform: translate(-50%, -50%) scale(1.2); }
-            100% { transform: translate(-50%, -50%) scale(1); }
-        }
-
-        /* پاپ آپ فیدبک و انگیزه */
-        #energy-toast {
+        #toast {
             position: fixed;
-            top: 45%;
+            top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0.6);
-            background: linear-gradient(135deg, #3b82f6, #10b981);
+            transform: translate(-50%, -50%) scale(0.7);
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
             color: white;
-            padding: 14px 28px;
+            padding: 15px 35px;
             border-radius: 50px;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
             z-index: 9999;
             opacity: 0;
             pointer-events: none;
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
-            direction: rtl;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
 
-        #energy-toast.active {
+        #toast.show {
             opacity: 1;
             transform: translate(-50%, -50%) scale(1);
         }
 
-        #action-btn {
+        #next-btn {
             margin-top: 15px;
-            padding: 14px 0;
+            padding: 14px;
             background-color: var(--btn-color);
             color: var(--btn-text);
             border: none;
-            border-radius: 14px;
-            font-size: 17px;
+            border-radius: 12px;
+            font-size: 18px;
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            max-width: 440px;
+            max-width: 420px;
             display: none;
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-            transition: background 0.2s;
-        }
-
-        #action-btn:active {
-            background-color: #059669;
+            box-shadow: 0 5px 15px rgba(0, 180, 216, 0.4);
         }
     </style>
 </head>
 <body>
 
-    <div id="header-panel">
+    <div id="header">
         <span id="level-txt">مرحله: ۱ / ۱۰۰</span>
         <span id="score-txt">اختلافات: ۰ از ۳</span>
     </div>
 
-    <div class="game-container">
-        <div class="image-container-box" id="box-top">
-            <img id="img-top" class="game-photo" src="" alt="تصویر اصلی">
+    <div class="game-box">
+        <div class="canvas-container">
+            <canvas id="canvas-top"></canvas>
         </div>
         
-        <div class="image-container-box" id="box-bottom">
-            <img id="img-bottom" class="game-photo" src="" alt="تصویر ثانویه">
+        <div class="canvas-container">
+            <canvas id="canvas-bottom"></canvas>
         </div>
     </div>
 
-    <button id="action-btn" onclick="goToNextLevel()">مرحله بعدی ➔</button>
+    <button id="next-btn" onclick="nextLevel()">مرحله بعدی ➔</button>
 
-    <div id="energy-toast">عالی بود!</div>
+    <div id="toast">دمت گرم! 🔥</div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        const words = ["دمت گرم! 🔥", "احسنت، هوش بالا! 👏", "عالی هستی! ⭐", "فوق‌العاده بود! 😎", "دقتت بیستیه! 🎯", "بسیار عالی! 👌"];
+        const words = ["دمت گرم! 🔥", "احسنت! 👏", "عالی بود! ⭐", "چه دقتی! 😎", "ایول! 🎯"];
+        const totalLevels = 100;
+        let currentLevel = 0;
+        let foundDiffs = [];
+        let currentLevelData = null;
 
-        // آرایه مادر برای نگهداری اطلاعات تمام ۱۰۰ مرحله بازی
-        const totalLevelsCount = 100;
-        let gameLevels = [];
+        const canvasTop = document.getElementById('canvas-top');
+        const canvasBottom = document.getElementById('canvas-bottom');
+        const ctxTop = canvasTop.getContext('2d');
+        const ctxBottom = canvasBottom.getContext('2d');
 
-        // ژانرهای عکس درخواستی شما
-        const categories = ['fruit', 'car', 'nature', 'landscape'];
+        // لیست عکس‌های فوق‌العاده باکیفیت شاتر استوک از طبیعت، ماشین و میوه‌ها
+        const photoPool = [
+            "https://images.unsplash.com/photo-1617788138017-80ad40651399?w=800&q=90", // ماشین
+            "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=90", // طبیعت
+            "https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=800&q=90", // میوه
+            "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=90", // ماشین اسپرت
+            "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=90"  // منظره
+        ];
 
-        // مولد ساختار ۱۰۰ مرحله کامل بازی به صورت پویا و ساختاریافته
-        function generateAll100Levels() {
-            for (let i = 1; i <= totalLevelsCount; i++) {
-                const category = categories[i % categories.length];
-                
-                // تعیین تعداد اختلافات بر اساس شماره مرحله (از آسان به سخت)
-                // مراحل اولیه ۲ اختلاف، اواسط ۳ و مراحل بالا ۵ اختلاف بسیار ریز دارند
-                let diffCount = 2;
-                let clickRadius = 8; // شعاع لمس (مراحل اول بزرگتر و آسان تر)
-                
-                if (i > 20) { diffCount = 3; clickRadius = 7; }
-                if (i > 50) { diffCount = 4; clickRadius = 6; }
-                if (i > 80) { diffCount = 5; clickRadius = 5; } // بسیار ریز و سخت
+        // سیستم هوشمند تولید ۱۰۰ مرحله بر اساس ایده شما
+        function generateLevelData(levelNum) {
+            const imgUrl = photoPool[(levelNum - 1) % photoPool.length];
+            
+            // افزایش تعداد تفاوت‌ها با بالا رفتن مراحل (سختی تدریجی)
+            let diffCount = 3;
+            if (levelNum > 30) diffCount = 4;
+            if (levelNum > 70) diffCount = 5;
 
-                // ایجاد نقاط اختلاف دقیق ریاضی منحصربه‌فرد برای هر مرحله به صورت درصدی
-                let stageDifferences = [];
-                for (let d = 1; d <= diffCount; d++) {
-                    stageDifferences.push({
-                        id: d,
-                        // تولید مختصات غیرتکراری و پخش شده در صفحه
-                        x: Math.floor(15 + (Math.random() * 70)), 
-                        y: Math.floor(15 + (Math.random() * 70)),
-                        radius: clickRadius 
-                    });
-                }
-
-                // استفاده از سرورهای اختصاصی تصاویر استودیویی با کیفیت ماورای بنفش و رزولوشن بالا
-                // توجه مهم: برای بازی‌های نهایی تجاری، شما آدرس ۲ عکس ادیت شده خود را اینجا جایگزین می‌کنید.
-                gameLevels.push({
-                    levelNum: i,
-                    // استفاده از پارامترهای رندومایزر جهت جلوگیری از کش شدن و بالا بردن نهایت کیفیت تصویر در موبایل
-                    img1: `https://images.unsplash.com/photo-${getPhotoId(i)}?w=1000&auto=format&fit=crop&q=90`,
-                    img2: `https://images.unsplash.com/photo-${getPhotoId(i)}?w=1000&auto=format&fit=crop&q=90`, 
-                    differences: stageDifferences
+            let diffs = [];
+            const colors = ['#ff0055', '#00ff55', '#00f0ff', '#ffb703', '#ffffff', '#9d4edd'];
+            
+            for (let i = 0; i < diffCount; i++) {
+                diffs.push({
+                    id: i,
+                    // تعیین مختصات درصدی به صورت رندوم روی عکس
+                    x: Math.floor(15 + Math.random() * 70),
+                    y: Math.floor(15 + Math.random() * 70),
+                    radius: Math.max(15, 25 - Math.floor(levelNum / 8)), // کوچک‌تر شدن تفاوت‌ها در مراحل بالاتر
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    type: Math.random() > 0.5 ? 'circle' : 'square' // تنوع در شکل‌های اضافه شده
                 });
             }
+
+            return { levelNum, imgUrl, diffs };
         }
 
-        // یک دیتابیس داخلی از شناسه عکس‌های فوق العاده باکیفیت ماشین، میوه و طبیعت
-        function getPhotoId(index) {
-            const ids = [
-                "1617788138017-80ad40651399", // ماشین ۱
-                "1503376780353-7e6692767b70", // ماشین ۲
-                "1619546813926-a78fa6372cd2", // میوه ۱
-                "1610832958506-aa56368176cf", // میوه ۲
-                "1470071459604-3b5ec3a7fe05", // طبیعت ۱
-                "1506744038136-46273834b3fb", // طبیعت ۲
-                "1441974231531-c6227db76b6e", // طبیعت ۳
-                "1513836279014-a89f7a76ae86"  // طبیعت ۴
-            ];
-            return ids[index % ids.length];
-        }
-
-        let currentLevelIdx = 0;
-        let targetsFound = [];
-
-        function initStage(index) {
-            if (index >= gameLevels.length) {
-                alert("شگفت‌انگیز است! شما هر ۱۰۰ مرحله بازی را با موفقیت فتح کردید! 🏆");
+        function startStage(levelIdx) {
+            if (levelIdx >= totalLevels) {
+                alert("تبریک! شما تمام ۱۰۰ مرحله بازی را به پایان رساندید! 🏆");
                 return;
             }
 
-            currentLevelIdx = index;
-            targetsFound = [];
-            const currentStage = gameLevels[currentLevelIdx];
+            currentLevel = levelIdx;
+            foundDiffs = [];
+            currentLevelData = generateLevelData(currentLevel + 1);
 
-            // به روز رسانی دقیق هدر بازی
-            document.getElementById('level-txt').innerText = `مرحله: ${currentStage.levelNum} / ۱۰۰`;
-            document.getElementById('score-txt').innerText = `اختلافات: ۰ از ${currentStage.differences.length}`;
-            document.getElementById('action-btn').style.display = 'none';
+            document.getElementById('level-txt').innerText = `مرحله: ${currentLevelData.levelNum} / ۱۰۰`;
+            document.getElementById('score-txt').innerText = `اختلافات: ۰ از ${currentLevelData.diffs.length}`;
+            document.getElementById('next-btn').style.display = 'none';
+
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = currentLevelData.imgUrl;
             
-            // حذف دایره‌های مراحل پیشین
-            document.querySelectorAll('.found-circle').forEach(circle => circle.remove());
+            img.onload = function() {
+                // تنظیم ابعاد بوم‌ها بر اساس ابعاد واقعی عکس برای حفظ بالاترین کیفیت
+                canvasTop.width = img.width;
+                canvasTop.height = img.height;
+                canvasBottom.width = img.width;
+                canvasBottom.height = img.height;
 
-            // لود تصاویر
-            document.getElementById('img-top').src = currentStage.img1;
-            document.getElementById('img-bottom').src = currentStage.img2;
+                // تصویر اول: بدون دستکاری
+                ctxTop.drawImage(img, 0, 0);
+
+                // تصویر دوم: ابتدا عکس اصلی کشیده می‌شود، سپس المان‌ها به آن اضافه می‌شوند
+                ctxBottom.drawImage(img, 0, 0);
+                drawRealDifferences(ctxBottom, currentLevelData.diffs);
+            };
         }
 
-        function handleBoxClick(event, containerId) {
-            const container = document.getElementById(containerId);
-            const bounds = container.getBoundingClientRect();
-            
-            // فرمول محاسبه موقعیت کلیک بر اساس درصد دقیق برای جلوگیری از خطای سایز نمایشگر
-            const posX = ((event.clientX - bounds.left) / bounds.width) * 100;
-            const posY = ((event.clientY - bounds.top) / bounds.height) * 100;
+        // نقاشی کردن تفاوت‌های واقعی روی عکس دوم
+        function drawRealDifferences(ctx, diffs) {
+            diffs.forEach(diff => {
+                const realX = (diff.x / 100) * canvasBottom.width;
+                const realY = (diff.y / 100) * canvasBottom.height;
+                const realRadius = (diff.radius / 100) * canvasBottom.width;
 
-            const stageData = gameLevels[currentLevelIdx];
-            let hitDetected = false;
-
-            stageData.differences.forEach(diff => {
-                if (targetsFound.includes(diff.id)) return;
-
-                // محاسبه فواصل بر مبنای پیکسل فرضی دایره حساسیت کلیک
-                const deltaX = posX - diff.x;
-                const deltaY = posY - diff.y;
-                const finalDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-                // اگر کلیک کاربر درون محدوده مجاز تفاوت رزولوشن بود
-                if (finalDistance <= diff.radius) {
-                    targetsFound.push(diff.id);
-                    hitDetected = true;
-
-                    // ترسیم دایره تایید روی هر دو باکس تصویر بالا و پایین
-                    drawMarkerOnScreen(diff.x, diff.y, 'box-top');
-                    drawMarkerOnScreen(diff.x, diff.y, 'box-bottom');
-                    
-                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-
-                    triggerMotivationPanel();
-                    refreshScoreStatus();
+                ctx.fillStyle = diff.color;
+                ctx.beginPath();
+                
+                if (diff.type === 'circle') {
+                    ctx.arc(realX, realY, realRadius, 0, 2 * Math.PI);
+                    ctx.fill();
+                } else {
+                    ctx.fillRect(realX - realRadius, realY - realRadius, realRadius * 2, realRadius * 2);
                 }
             });
         }
 
-        function drawMarkerOnScreen(x, y, boxId) {
-            const targetBox = document.getElementById(boxId);
-            const circleMarker = document.createElement('div');
-            circleMarker.className = 'found-circle';
-            circleMarker.style.left = x + '%';
-            circleMarker.style.top = y + '%';
-            circleMarker.style.width = '32px';
-            circleMarker.style.height = '32px';
-            targetBox.appendChild(circleMarker);
+        function handleGameClick(event) {
+            const rect = canvasBottom.getBoundingClientRect();
+            // محاسبه دقیق نقطه کلیک به درصد
+            const clickX = ((event.clientX - rect.left) / rect.width) * 100;
+            const clickY = ((event.clientY - rect.top) / rect.height) * 100;
+
+            currentLevelData.diffs.forEach(diff => {
+                if (foundDiffs.includes(diff.id)) return;
+
+                const dist = Math.sqrt(Math.pow(clickX - diff.x, 2) + Math.pow(clickY - diff.y, 2));
+
+                // بررسی کلیک دقیق روی شیء اضافه شده
+                if (dist <= diff.radius + 4) {
+                    foundDiffs.push(diff.id);
+                    
+                    // لرزش گوشی در تلگرام
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
+                    // کشیدن دایره تایید سبز رنگ در نقطه پیدا شده روی هر دو بوم
+                    drawSuccessCircle(diff.x, diff.y);
+                    showToast();
+                    updateScore();
+                }
+            });
         }
 
-        function triggerMotivationPanel() {
-            const toastElement = document.getElementById('energy-toast');
-            toastElement.innerText = words[Math.floor(Math.random() * words.length)];
-            toastElement.classList.add('active');
-            
-            setTimeout(() => {
-                toastElement.classList.remove('active');
-            }, 1000); // محو شدن بعد از ۱ ثانیه دقیق
+        function drawSuccessCircle(percentX, percentY) {
+            [ctxTop, ctxBottom].forEach(ctx => {
+                const x = (percentX / 100) * ctx.canvas.width;
+                const y = (percentY / 100) * ctx.canvas.height;
+                const r = (5 / 100) * ctx.canvas.width;
+
+                ctx.strokeStyle = '#00ff55';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, 2 * Math.PI);
+                ctx.stroke();
+            });
         }
 
-        function refreshScoreStatus() {
-            const stageData = gameLevels[currentLevelIdx];
-            document.getElementById('score-txt').innerText = `اختلافات: ${targetsFound.length} از ${stageData.differences.length}`;
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.innerText = words[Math.floor(Math.random() * words.length)];
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 1000);
+        }
 
-            // باز شدن دکمه مرحله بعد در صورت اتمام تفاوت‌ها
-            if (targetsFound.length === stageData.differences.length) {
-                document.getElementById('action-btn').style.display = 'block';
+        function updateScore() {
+            document.getElementById('score-txt').innerText = `اختلافات: ${foundDiffs.length} از ${currentLevelData.diffs.length}`;
+            if (foundDiffs.length === currentLevelData.diffs.length) {
+                document.getElementById('next-btn').style.display = 'block';
             }
         }
 
-        function goToNextLevel() {
-            initStage(currentLevelIdx + 1);
+        function nextLevel() {
+            startStage(currentLevel + 1);
         }
 
-        // الحاق رویداد لمس و کلیک به تصاویر
-        document.getElementById('box-top').addEventListener('click', (e) => handleBoxClick(e, 'box-top'));
-        document.getElementById('box-bottom').addEventListener('click', (e) => handleBoxClick(e, 'box-bottom'));
+        // هر دو بوم قابلیت کلیک دارند
+        canvasTop.addEventListener('click', handleGameClick);
+        canvasBottom.addEventListener('click', handleGameClick);
 
-        // اجرای کل هسته بازی
-        generateAll100Levels();
-        initStage(0);
+        // شروع بازی از مرحله ۱
+        window.onload = () => startStage(0);
     </script>
 </body>
 </html>

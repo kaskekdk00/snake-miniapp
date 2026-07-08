@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>مار | بازی کلاسیک</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --lcd-bg: #c6d98f;
+    --lcd-bg-2: #bcd07f;
+    --pixel-dark: #33421f;
+    --pixel-mid: #5c6c3d;
+    --bezel: #1c1c1e;
+    --bezel-hi: #333335;
+    --bezel-lo: #0c0c0d;
+    --btn-grey: #8b8f86;
+    --btn-grey-lo: #6c716a;
+    --danger: #7a2f22;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent; user-select:none;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: radial-gradient(ellipse at 50% -10%, #2a2a2c 0%, #101011 60%, #060607 100%);
+    font-family:'Vazirmatn', sans-serif;
+    color:#e8e6df;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  .stage{
+    width:100%;
+    max-width:420px;
+    padding:18px 16px 26px;
+  }
+  .brand{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-bottom:10px; padding:0 4px;
+  }
+  .brand .title{
+    font-family:'VT323', monospace;
+    font-size:30px; letter-spacing:2px; color:#dfe3d2;
+  }
+  .brand .sub{
+    font-size:11px; color:#8b8d86; letter-spacing:1px;
+  }
+
+  /* ---- Phone body ---- */
+  .phone{
+    background: linear-gradient(180deg, var(--bezel-hi), var(--bezel) 12%, var(--bezel) 88%, var(--bezel-lo));
+    border-radius:34px;
+    padding:20px 18px 26px;
+    box-shadow:
+      0 25px 50px -15px rgba(0,0,0,.7),
+      inset 0 1px 0 rgba(255,255,255,.06),
+      inset 0 -2px 6px rgba(0,0,0,.6);
+    position:relative;
+  }
+  .earpiece{
+    width:56px; height:6px; border-radius:4px;
+    background: linear-gradient(180deg,#000,#1a1a1a);
+    margin:0 auto 14px;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.05);
+  }
+
+  .screen-frame{
+    background: linear-gradient(155deg,#4b5a2c, #232b12);
+    border-radius:10px;
+    padding:10px;
+    box-shadow: inset 0 3px 8px rgba(0,0,0,.55), inset 0 -1px 0 rgba(255,255,255,.05);
+  }
+  .lcd{
+    position:relative;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.05) 0px, rgba(0,0,0,.05) 1px, transparent 1px, transparent 3px),
+      linear-gradient(155deg, var(--lcd-bg), var(--lcd-bg-2));
+    border-radius:4px;
+    overflow:hidden;
+    box-shadow: inset 0 0 18px rgba(0,0,0,.28);
+  }
+  .lcd::after{
+    content:"";
+    position:absolute; inset:0;
+    background: linear-gradient(120deg, rgba(255,255,255,.14), transparent 40%);
+    pointer-events:none;
+  }
+  .hud{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 10px 2px;
+    font-family:'VT323', monospace;
+    color: var(--pixel-dark);
+    position:relative; z-index:2;
+  }
+  .hud .label{font-size:13px; letter-spacing:1px; opacity:.75;}
+  .hud .value{font-size:24px; letter-spacing:1px;}
+
+  canvas{
+    display:block;
+    width:100%;
+    height:auto;
+    position:relative; z-index:2;
+    image-rendering: pixelated;
+  }
+
+  .msgline{
+    text-align:center;
+    font-family:'VT323', monospace;
+    color: var(--pixel-dark);
+    font-size:15px;
+    padding:2px 8px 10px;
+    min-height:20px;
+    position:relative; z-index:2;
+  }
+
+  /* ---- Keypad ---- */
+  .keypad{
+    margin-top:18px;
+    display:grid;
+    grid-template-columns:64px 64px 64px;
+    grid-template-rows:52px 52px 52px;
+    gap:8px;
+    justify-content:center;
+  }
+  .key{
+    background: linear-gradient(180deg, var(--btn-grey), var(--btn-grey-lo));
+    border-radius:10px;
+    border:none;
+    color:#1c1c1c;
+    font-size:20px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 3px 0 #4d4f49, inset 0 1px 0 rgba(255,255,255,.35);
+    transition: transform .05s, box-shadow .05s;
+  }
+  .key:active{
+    transform: translateY(3px);
+    box-shadow: 0 0 0 #4d4f49, inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .key.up{grid-column:2; grid-row:1;}
+  .key.left{grid-column:1; grid-row:2;}
+  .key.center{grid-column:2; grid-row:2; font-family:'VT323',monospace; font-size:15px; letter-spacing:1px;}
+  .key.right{grid-column:3; grid-row:2;}
+  .key.down{grid-column:2; grid-row:3;}
+
+  .footnote{
+    text-align:center; margin-top:14px;
+    font-size:10.5px; color:#6c6e68; letter-spacing:.3px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="brand">
+    <span class="title">SNAKE</span>
+    <span class="sub">بازی مار کلاسیک</span>
+  </div>
+
+  <div class="phone">
+    <div class="earpiece"></div>
+    <div class="screen-frame">
+      <div class="lcd">
+        <div class="hud">
+          <span><span class="label">امتیاز</span> <span class="value" id="score">0</span></span>
+          <span><span class="label">رکورد</span> <span class="value" id="best">0</span></span>
+        </div>
+        <canvas id="game" width="240" height="240"></canvas>
+        <div class="msgline" id="msg">برای شروع، یکی از دکمه‌ها را بزن</div>
+      </div>
+    </div>
+
+    <div class="keypad">
+      <button class="key up" data-dir="up">▲</button>
+      <button class="key left" data-dir="left">◀</button>
+      <button class="key center" id="pauseBtn">⏸</button>
+      <button class="key right" data-dir="right">▶</button>
+      <button class="key down" data-dir="down">▼</button>
+    </div>
+  </div>
+
+  <div class="footnote">کشیدن انگشت روی صفحه هم کار می‌کند · کلیدهای جهت‌دار در دسکتاپ</div>
+</div>
+
+<script>
+(function(){
+  // ---- Telegram Web App integration ----
+  var tg = window.Telegram ? window.Telegram.WebApp : null;
+  if (tg) {
+    try {
+      tg.ready();
+      tg.expand();
+      tg.setHeaderColor && tg.setHeaderColor('#1c1c1e');
+      tg.setBackgroundColor && tg.setBackgroundColor('#101011');
+    } catch(e) {}
+  }
+  function haptic(type){
+    if (tg && tg.HapticFeedback) {
+      try {
+        if (type === 'eat') tg.HapticFeedback.impactOccurred('light');
+        if (type === 'die') tg.HapticFeedback.notificationOccurred('error');
+        if (type === 'tap') tg.HapticFeedback.selectionChanged();
+      } catch(e) {}
+    }
+  }
+
+  // ---- Game setup ----
+  var GRID = 15;
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var cell = canvas.width / GRID;
+
+  var scoreEl = document.getElementById('score');
+  var bestEl = document.getElementById('best');
+  var msgEl = document.getElementById('msg');
+
+  var best = 0; // session high score (kept in memory only)
+
+  var snake, dir, nextDir, food, score, alive, paused, loopId, speed;
+
+  function reset(){
+    snake = [{x:7,y:7},{x:6,y:7},{x:5,y:7}];
+    dir = 'right';
+    nextDir = 'right';
+    score = 0;
+    alive = true;
+    paused = false;
+    speed = 150;
+    placeFood();
+    scoreEl.textContent = score;
+    msgEl.textContent = 'برو که رفتیم!';
+  }
+
+  function placeFood(){
+    while(true){
+      var x = Math.floor(Math.random()*GRID);
+      var y = Math.floor(Math.random()*GRID);
+      if (!snake.some(function(s){ return s.x===x && s.y===y; })) {
+        food = {x:x, y:y};
+        return;
+      }
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // faint grid dither, Nokia-LCD style
+    ctx.fillStyle = 'rgba(51,66,31,0.05)';
+    for (var gx=0; gx<GRID; gx++){
+      for (var gy=0; gy<GRID; gy++){
+        if ((gx+gy)%2===0) ctx.fillRect(gx*cell, gy*cell, cell, cell);
+      }
+    }
+
+    // food (blink)
+    var blink = Math.floor(Date.now()/300)%2===0;
+    ctx.fillStyle = '#33421f';
+    if (blink) {
+      var pad = cell*0.22;
+      ctx.fillRect(food.x*cell+pad, food.y*cell+pad, cell-pad*2, cell-pad*2);
+    }
+
+    // snake
+    snake.forEach(function(s, i){
+      ctx.fillStyle = i===0 ? '#243214' : '#33421f';
+      var pad = i===0 ? 1 : 2;
+      ctx.fillRect(s.x*cell+pad, s.y*cell+pad, cell-pad*2, cell-pad*2);
+    });
+  }
+
+  function step(){
+    if (!alive || paused) return;
+    dir = nextDir;
+    var head = {x: snake[0].x, y: snake[0].y};
+    if (dir==='up') head.y--;
+    if (dir==='down') head.y++;
+    if (dir==='left') head.x--;
+    if (dir==='right') head.x++;
+
+    // wrap around edges — classic Nokia behavior
+    if (head.x<0) head.x = GRID-1;
+    if (head.x>=GRID) head.x = 0;
+    if (head.y<0) head.y = GRID-1;
+    if (head.y>=GRID) head.y = 0;
+
+    if (snake.some(function(s){ return s.x===head.x && s.y===head.y; })) {
+      return gameOver();
+    }
+
+    snake.unshift(head);
+
+    if (head.x===food.x && head.y===food.y) {
+      score += 10;
+      scoreEl.textContent = score;
+      haptic('eat');
+      placeFood();
+      if (speed > 70) { speed -= 4; restartLoop(); }
+    } else {
+      snake.pop();
+    }
+
+    draw();
+  }
+
+  function gameOver(){
+    alive = false;
+    haptic('die');
+    if (score > best) { best = score; bestEl.textContent = best; }
+    msgEl.textContent = 'باختی! امتیاز: ' + score + ' — دوباره بزن';
+    clearInterval(loopId);
+    if (tg && tg.MainButton) {
+      try { tg.MainButton.hide(); } catch(e) {}
+    }
+  }
+
+  function restartLoop(){
+    clearInterval(loopId);
+    loopId = setInterval(step, speed);
+  }
+
+  function setDir(d){
+    var opposite = {up:'down', down:'up', left:'right', right:'left'};
+    if (!alive) { reset(); draw(); restartLoop(); return; }
+    if (opposite[d] === dir) return; // no 180 turns
+    nextDir = d;
+    haptic('tap');
+  }
+
+  // keyboard
+  window.addEventListener('keydown', function(e){
+    var map = {ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right',
+               w:'up', s:'down', a:'left', d:'right'};
+    if (map[e.key]) { setDir(map[e.key]); e.preventDefault(); }
+    if (e.key === ' ') togglePause();
+  });
+
+  // on-screen keypad
+  document.querySelectorAll('.key[data-dir]').forEach(function(btn){
+    btn.addEventListener('click', function(){ setDir(btn.getAttribute('data-dir')); });
+  });
+
+  // swipe controls
+  var touchStart = null;
+  canvas.addEventListener('touchstart', function(e){
+    var t = e.changedTouches[0];
+    touchStart = {x:t.clientX, y:t.clientY};
+  }, {passive:true});
+  canvas.addEventListener('touchend', function(e){
+    if (!touchStart) return;
+    var t = e.changedTouches[0];
+    var dx = t.clientX - touchStart.x;
+    var dy = t.clientY - touchStart.y;
+    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+    if (Math.abs(dx) > Math.abs(dy)) setDir(dx>0 ? 'right':'left');
+    else setDir(dy>0 ? 'down':'up');
+    touchStart = null;
+  }, {passive:true});
+
+  function togglePause(){
+    if (!alive) return;
+    paused = !paused;
+    msgEl.textContent = paused ? 'مکث ⏸' : 'برو که رفتیم!';
+    haptic('tap');
+  }
+  document.getElementById('pauseBtn').addEventListener('click', togglePause);
+
+  // init
+  reset();
+  draw();
+  restartLoop();
+})();
+</script>
+</body>
+</html>

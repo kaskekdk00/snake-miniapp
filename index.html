@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بازی پیدا کردن اختلافات</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #f5f5f5);
+            --text-color: var(--tg-theme-text-color, #333333);
+            --btn-color: var(--tg-theme-button-color, #2481cc);
+            --btn-text: var(--tg-theme-button-text-color, #ffffff);
+            --hint-color: var(--tg-theme-hint-color, #999999);
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .image-wrapper {
+            position: relative;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            /* جلوگیری از درگ شدن عکس */
+            -webkit-user-drag: none; 
+        }
+
+        .game-img {
+            width: 100%;
+            display: block;
+            pointer-events: auto;
+        }
+
+        /* دایره‌هایی که پس از پیدا شدن اختلاف ظاهر می‌شوند */
+        .difference-marker {
+            position: absolute;
+            border: 3px solid #00ff00;
+            border-radius: 50%;
+            background-color: rgba(0, 255, 0, 0.2);
+            transform: translate(-50%, -50%);
+            pointer-events: none; /* کلیک از روی آن عبور کند */
+            animation: pop 0.3s ease-out;
+        }
+
+        @keyframes pop {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        #next-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background-color: var(--btn-color);
+            color: var(--btn-text);
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 80%;
+            max-width: 300px;
+            display: none;
+        }
+
+        #next-btn:disabled {
+            background-color: var(--hint-color);
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <span id="level-display">مرحله: ۱ / ۱۰۰</span>
+        <span id="score-display">اختلافات: ۰ از ۳</span>
+    </div>
+
+    <div class="game-container">
+        <div class="image-wrapper" id="wrapper-top">
+            <img id="img-top" class="game-img" src="" alt="تصویر اصلی">
+        </div>
+        
+        <div class="image-wrapper" id="wrapper-bottom">
+            <img id="img-bottom" class="game-img" src="" alt="تصویر ثانویه">
+        </div>
+    </div>
+
+    <button id="next-btn" onclick="nextLevel()">مرحله بعد</button>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand(); // باز کردن کامل صفحه مینی آپ در تلگرام
+
+        // دیتابیس ۱۰۰ مرحله بازی (به عنوان نمونه ۳ مرحله اول را پر کرده‌ام)
+        // مختصات x و y به صورت درصد (۰ تا ۱۰۰) هستند تا در هر سایز گوشی درست کار کنند.
+        const levels = [
+            {
+                levelNum: 1,
+                img1: "https://picsum.photos/id/10/400/300", // آدرس عکس اصلی
+                img2: "https://picsum.photos/id/10/400/300", // آدرس عکس با اختلاف (برای تست همسان گذاشته شده)
+                // در مرحله ۱ فقط ۲ اختلاف ساده هست
+                differences: [
+                    { id: 1, x: 25, y: 40, radius: 8 }, // اختلاف اول در موقعیت X=25% و Y=40% عکس
+                    { id: 2, x: 70, y: 65, radius: 8 }
+                ]
+            },
+            {
+                levelNum: 2,
+                img1: "https://picsum.photos/id/20/400/300",
+                img2: "https://picsum.photos/id/20/400/300",
+                // مرحله ۲ سخت تر با ۳ اختلاف
+                differences: [
+                    { id: 1, x: 15, y: 20, radius: 7 },
+                    { id: 2, x: 50, y: 50, radius: 7 },
+                    { id: 3, x: 80, y: 30, radius: 7 }
+                ]
+            },
+            {
+                levelNum: 3,
+                img1: "https://picsum.photos/id/30/400/300",
+                img2: "https://picsum.photos/id/30/400/300",
+                differences: [
+                    { id: 1, x: 30, y: 15, radius: 6 },
+                    { id: 2, x: 45, y: 75, radius: 6 },
+                    { id: 3, x: 60, y: 40, radius: 6 },
+                    { id: 4, x: 85, y: 80, radius: 6 }
+                ]
+            }
+            // شما می‌توانید تا ۱۰۰ مرحله را به همین ترتیب با آدرس عکس‌ها و مختصات واقعی اضافه کنید...
+        ];
+
+        let currentLevelIndex = 0;
+        let foundDifferences = [];
+
+        // بارگذاری مرحله
+        function loadLevel(index) {
+            if (index >= levels.length) {
+                alert("تبریک! شما تمام مراحل را با موفقیت پشت سر گذاشتید.");
+                return;
+            }
+
+            currentLevelIndex = index;
+            foundDifferences = [];
+            const level = levels[currentLevelIndex];
+
+            // به‌روزرسانی متون
+            document.getElementById('level-display').innerText = `مرحله: ${level.levelNum} / ۱۰۰`;
+            document.getElementById('score-display').innerText = `اختلافات: ۰ از ${level.differences.length}`;
+            document.getElementById('next-btn').style.display = 'none';
+
+            // بارگذاری عکس‌ها
+            document.getElementById('img-top').src = level.img1;
+            document.getElementById('img-bottom').src = level.img2;
+
+            // پاک کردن دایره‌های مرحله قبل
+            document.querySelectorAll('.difference-marker').forEach(el => el.remove());
+        }
+
+        // بررسی کلیک کاربر روی عکس‌ها
+        function handleImageClick(e, wrapperId) {
+            const rect = e.target.getBoundingClientRect();
+            // محاسبه درصد کلیک شده نسبت به کل عکس
+            const clickX = ((e.clientX - rect.left) / rect.width) * 100;
+            const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+
+            const level = levels[currentLevelIndex];
+            
+            // بررسی اینکه آیا کلیک روی یکی از اختلافات بوده یا نه
+            level.differences.forEach(diff => {
+                if (foundDifferences.includes(diff.id)) return; // اگر قبلا پیدا شده بود کاری نکن
+
+                // محاسبه فاصله کلیک کاربر تا نقطه اختلاف واقعی (فرمول فیثاغورس)
+                const distance = Math.sqrt(Math.pow(clickX - diff.x, 2) + Math.pow(clickY - diff.y, 2));
+
+                // اگر فاصله کمتر از شعاع حساسیت (radius) بود یعنی درست حدس زده
+                if (distance <= diff.radius) {
+                    foundDifferences.push(diff.id);
+                    createMarker(diff.x, diff.y, 'wrapper-top');
+                    createMarker(diff.x, diff.y, 'wrapper-bottom');
+                    
+                    // لرزش خفیف گوشی (Haptic Feedback) در تلگرام به نشانه موفقیت
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
+                    updateScore();
+                }
+            });
+        }
+
+        // ایجاد دایره سبز دور اختلاف پیدا شده
+        function createMarker(xPercent, yPercent, wrapperId) {
+            const wrapper = document.getElementById(wrapperId);
+            const marker = document.createElement('div');
+            marker.className = 'difference-marker';
+            marker.style.left = xPercent + '%';
+            marker.style.top = yPercent + '%';
+            marker.style.width = '30px';
+            marker.style.height = '30px';
+            wrapper.appendChild(marker);
+        }
+
+        // بروزرسانی تعداد امتیازات
+        function updateScore() {
+            const level = levels[currentLevelIndex];
+            document.getElementById('score-display').innerText = `اختلافات: ${foundDifferences.length} از ${level.differences.length}`;
+
+            // اگر همه را پیدا کرد، دکمه مرحله بعد بیاید
+            if (foundDifferences.length === level.differences.length) {
+                document.getElementById('next-btn').style.display = 'block';
+            }
+        }
+
+        function nextLevel() {
+            loadLevel(currentLevelIndex + 1);
+        }
+
+        // اتصال رویداد کلیک به باکس عکس‌ها
+        document.getElementById('wrapper-top').addEventListener('click', (e) => handleImageClick(e, 'wrapper-top'));
+        document.getElementById('wrapper-bottom').addEventListener('click', (e) => handleImageClick(e, 'wrapper-bottom'));
+
+        // شروع بازی با مرحله اول
+        loadLevel(0);
+    </script>
+</body>
+</html>

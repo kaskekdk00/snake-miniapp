@@ -1,0 +1,285 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Vazirmatn', sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body {
+    background-color: #1c222b;
+    color: #ffffff;
+    overflow: hidden;
+    direction: rtl;
+}
+
+/* ساختار صفحات */
+.screen {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    padding: 20px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* صفحه اصلی */
+.user-profile {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 20px;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.game-title {
+    margin: 60px 0 20px 0;
+    font-size: 28px;
+    color: #4cabff;
+    text-shadow: 0 4px 10px rgba(76, 171, 255, 0.3);
+}
+
+.stats-overview {
+    margin-bottom: 40px;
+    background: #252f3d;
+    padding: 10px 30px;
+    border-radius: 12px;
+    font-size: 18px;
+}
+
+/* دکمه‌ها */
+.btn {
+    border: none;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+    text-align: center;
+    display: inline-block;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn-large {
+    width: 85%;
+    max-width: 320px;
+    padding: 16px;
+    margin: 10px 0;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4cabff, #0076de);
+    color: white;
+}
+
+.btn-secondary {
+    background: #2b394a;
+    color: #cfd8dc;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 14px;
+    background: #2b394a;
+    color: white;
+}
+
+/* صفحه انتخاب مراحل */
+.header-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.levels-grid {
+    width: 100%;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding-bottom: 30px;
+}
+
+.level-card {
+    background: #252f3d;
+    border-radius: 12px;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+    position: relative;
+    border: 2px solid transparent;
+}
+
+.level-card.locked {
+    opacity: 0.5;
+    background: #151a22;
+}
+
+.level-card.active-level {
+    border-color: #4cabff;
+}
+
+.level-stars {
+    font-size: 10px;
+    margin-top: 4px;
+    color: #ffd700;
+}
+
+/* صفحه بازی */
+.game-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #252f3d;
+    padding: 10px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
+.game-stats {
+    text-align: center;
+    font-size: 14px;
+}
+
+.images-container {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-wrapper {
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 4/3;
+    background: #ffffff;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.image-canvas {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* المان‌های تفاوت و نشانگرها */
+.clickable-area {
+    position: absolute;
+    border-radius: 50%;
+    /* برای تست می‌توانید خط دور ایجاد کنید، اما در حالت عادی شیشه‌ای است */
+    background: rgba(255, 255, 255, 0.01); 
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 10;
+}
+
+.found-marker {
+    position: absolute;
+    border: 3px solid #00e676;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse 0.3s ease-out;
+    pointer-events: none;
+    z-index: 11;
+}
+
+.wrong-marker {
+    position: absolute;
+    border: 3px solid #ff1744;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: shake 0.3s ease;
+    z-index: 11;
+}
+
+@keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+@keyframes shake {
+    0%, 100% { margin-left: 0; }
+    25% { margin-left: -5px; }
+    75% { margin-left: 5px; }
+}
+
+.game-footer {
+    width: 100%;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-hint {
+    background: #ff9800;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+}
+
+/* پاپ آپ پایان مرحله */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: #252f3d;
+    padding: 30px;
+    border-radius: 20px;
+    width: 85%;
+    max-width: 320px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.stars-container {
+    margin: 15px 0;
+    font-size: 24px;
+    color: #ffd700;
+}
+
+.modal-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}

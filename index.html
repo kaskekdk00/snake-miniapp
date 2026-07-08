@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بازی پیدا کردن تفاوت‌ها</title>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+    <div id="home-screen" class="screen active">
+        <div class="user-profile">
+            <span id="user-name">کاربر تلگرام</span> خوش آمدید!
+        </div>
+        <h1 class="game-title">پیدا کردن تفاوت‌ها</h1>
+        <div class="stats-overview">
+            <div class="stat-item"> سکه: <span id="total-coins">0</span> 🪙</div>
+        </div>
+        <button id="btn-start" class="btn btn-primary btn-large">شروع بازی</button>
+        <button id="btn-levels" class="btn btn-secondary btn-large">انتخاب مرحله</button>
+    </div>
+
+    <div id="levels-screen" class="screen">
+        <div class="header-bar">
+            <button id="btn-back-to-home" class="btn btn-sm">بازگشت ➡️</button>
+            <h2>انتخاب مرحله</h2>
+            <div></div>
+        </div>
+        <div id="levels-grid" class="levels-grid">
+            </div>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div class="game-header">
+            <button id="btn-back-to-levels" class="btn btn-sm">خروج ➡️</button>
+            <div class="game-stats">
+                <div>مرحله: <span id="current-level-num">۱</span></div>
+                <div>تفاوت‌های باقی‌مانده: <span id="diff-left">0</span></div>
+                <div>فرصت‌ها: <span id="hearts-left">❤️ ۳</span></div>
+            </div>
+            <div class="game-coins">🪙 <span id="game-coins-count">0</span></div>
+        </div>
+
+        <div class="images-container">
+            <div class="image-wrapper" id="img-top-wrapper">
+                <div class="image-canvas" id="img-top"></div>
+            </div>
+            <div class="image-wrapper" id="img-bottom-wrapper">
+                <div class="image-canvas" id="img-bottom"></div>
+            </div>
+        </div>
+
+        <div class="game-footer">
+            <button id="btn-hint" class="btn btn-hint">راهنمایی (💡 هزینه: ۱۵ سکه)</button>
+        </div>
+    </div>
+
+    <div id="game-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">آفرین!</h2>
+            <p id="modal-message">مرحله با موفقیت طی شد.</p>
+            <div id="modal-stars" class="stars-container"></div>
+            <div class="modal-buttons">
+                <button id="modal-btn-next" class="btn btn-primary">مرحله بعدی</button>
+                <button id="modal-btn-retry" class="btn btn-secondary">تلاش مجدد</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

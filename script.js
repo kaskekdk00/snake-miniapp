@@ -45,7 +45,6 @@ for (let i = 1; i <= totalLevelsCount; i++) {
     const config = getLevelConfig(i);
     
     // مختصات تفاوت‌ها بر اساس درصد (X و Y بین 5 تا 95 درصد قاب تصویر)
-    // برای مراحل نمونه ۳ تفاوت فرضی تعریف شده است.
     const diffsCoordinates = [
         { id: 1, x: 25, y: 40, found: false, radius: 8 },
         { id: 2, x: 55, y: 30, found: false, radius: 8 },
@@ -58,9 +57,6 @@ for (let i = 1; i <= totalLevelsCount; i++) {
 
     levels.push({
         levelNum: i,
-        // برای استفاده از تصاویر خودتان در آینده، کافیست فیلدهای زیر را پر کنید:
-        // bgTop: 'images/lvl' + i + '_top.jpg',
-        // bgBottom: 'images/lvl' + i + '_bottom.jpg',
         isDemo: true, 
         shapes: sampleShapes[i % sampleShapes.length], 
         diffs: diffsCoordinates,
@@ -127,7 +123,7 @@ function startLevel(lvlNum) {
     document.getElementById('game-coins-count').innerText = userData.coins;
     updateGameHeader();
     
-    // رندر کردن تصاویر (در این نسخه نمونه با SVG رندر می‌شود)
+    // رندر کردن تصاویر نمونه
     renderLevelImages();
     
     showScreen('game-screen');
@@ -247,19 +243,19 @@ function showMarker(x, y, className) {
     });
 }
 
-// دکمه راهنما
+// دکمه راهنما (اصلاح شده)
 document.getElementById('btn-hint').addEventListener('click', () => {
     if (userData.coins < 15) {
         tg.showAlert('سکه کافی ندارید! برای راهنمایی به ۱۵ سکه نیاز است.');
         return;
     }
     
-    const un-foundDiff = activeLevel.diffs.find(d => !d.found);
-    if (un-foundDiff) {
+    const unFoundDiff = activeLevel.diffs.find(d => !d.found);
+    if (unFoundDiff) {
         userData.coins -= 15;
         document.getElementById('game-coins-count').innerText = userData.coins;
         saveData();
-        handleDiffClick(un-foundDiff.id);
+        handleDiffClick(unFoundDiff.id);
     }
 });
 
@@ -276,7 +272,6 @@ function endLevel(isWin) {
     
     if (isWin) {
         title.innerText = 'پیروز شدید! 🎉';
-        // محاسبه ستاره بر اساس جان باقی‌مانده
         let starsEarned = 1;
         if (currentHearts === activeLevel.maxHearts) starsEarned = 3;
         else if (currentHearts >= activeLevel.maxHearts / 2) starsEarned = 2;
@@ -285,12 +280,10 @@ function endLevel(isWin) {
         for(let s=0; s<3; s++) starsStr += s < starsEarned ? '★' : '☆';
         starsContainer.innerText = starsStr;
         
-        // جایزه سکه
         const coinsReward = starsEarned * 10;
         userData.coins += coinsReward;
         msg.innerText = `شما ${starsEarned} ستاره و ${coinsReward} سکه دریافت کردید.`;
         
-        // بروزرسانی پیشرفت مرحله در کلید ستاره‌ها
         userData.stars['level_' + activeLevel.levelNum] = Math.max(userData.stars['level_' + activeLevel.levelNum] || 0, starsEarned);
         
         if (activeLevel.levelNum === userData.currentLevel && userData.currentLevel < totalLevelsCount) {
